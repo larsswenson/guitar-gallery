@@ -82,7 +82,8 @@ The frontend is built with React Native and the backend is powered by a NestJS A
    This project is licensed under the MIT License. See the LICENSE file for details.
 
 ### Acknowledgements
-   React Native
-   NestJS
-   TanStack Query
-   Axios
+
+- React Native
+- NestJS
+- TanStack Query
+- Axios
