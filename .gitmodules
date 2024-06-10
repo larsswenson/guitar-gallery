@@ -1,0 +1,3 @@
+[submodule "guitar-gallery-api"]
+	path = guitar-gallery-api
+	url = https://github.com/larsswenson/guitar-gallery-api.git
