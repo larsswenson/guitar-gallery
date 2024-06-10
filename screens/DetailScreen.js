@@ -5,12 +5,12 @@ import { fetchGuitar } from '../api';
 
 const DetailScreen = ({ route }) => {
   const { id } = route.params;
-  const { data, error, isPending } = useQuery({
+  const { data, error, isLoading } = useQuery({
     queryKey: ['guitar', id],
-    queryFn: () => fetchGuitar(id),
+    queryFn: () => fetchGuitar(id)
   });
 
-  if (isPending) {
+  if (isLoading) {
     return <Text>Loading...</Text>;
   }
 
@@ -36,8 +36,8 @@ const styles = StyleSheet.create({
   image: {
     width: 200,
     height: 200,
-    resizeMode: 'contain',
     marginBottom: 20,
+    resizeMode: 'contain',
   },
   text: {
     fontSize: 20,
@@ -45,6 +45,9 @@ const styles = StyleSheet.create({
 });
 
 export default DetailScreen;
+
+
+
 
 
 

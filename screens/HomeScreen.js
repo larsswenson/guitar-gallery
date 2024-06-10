@@ -1,15 +1,23 @@
 import React from 'react';
-import { View, Text, FlatList, StyleSheet, Image, Pressable } from 'react-native';
-import { useQuery } from '@tanstack/react-query';
-import { fetchGuitars } from '../api';
+import { View, Text, Button, FlatList, StyleSheet, Image, Pressable } from 'react-native';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { fetchGuitars, deleteGuitar } from '../api';
 
 const HomeScreen = ({ navigation }) => {
-  const { data: guitars, error, isPending } = useQuery({
+  const queryClient = useQueryClient();
+  const { data, error, isLoading } = useQuery({
     queryKey: ['guitars'],
-    queryFn: fetchGuitars,
+    queryFn: fetchGuitars
   });
 
-  if (isPending) {
+  const deleteMutation = useMutation({
+    mutationFn: deleteGuitar,
+    onSuccess: () => {
+      queryClient.invalidateQueries(['guitars']);
+    },
+  });
+
+  if (isLoading) {
     return <Text>Loading...</Text>;
   }
 
@@ -20,22 +28,24 @@ const HomeScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <FlatList
-        data={guitars}
+        data={data}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
-          <Pressable onPress={() => navigation.navigate('Detail', { id: item.id })}>
-            <View style={styles.itemContainer}>
-              <Image source={{ uri: item.image }} style={styles.image} />
-              <Text style={styles.text}>{item.make} {item.model} ({item.year})</Text>
+          <View style={styles.itemContainer}>
+            <Pressable onPress={() => navigation.navigate('Detail', { id: item.id })}>
+              <View style={styles.itemContent}>
+                <Image source={{ uri: item.image }} style={styles.image} />
+                <Text style={styles.text}>{item.make} {item.model} ({item.year})</Text>
+              </View>
+            </Pressable>
+            <View style={styles.buttonContainer}>
+              <Button title="Edit" onPress={() => navigation.navigate('AddEdit', { id: item.id })} />
+              <Button title="Delete" onPress={() => deleteMutation.mutate(item.id)} />
             </View>
-          </Pressable>
+          </View>
         )}
       />
-      <View style={styles.buttonContainer}>
-        <Pressable style={styles.addButton} onPress={() => navigation.navigate('AddEdit')}>
-          <Text style={styles.addButtonText}>Add Guitar</Text>
-        </Pressable>
-      </View>
+      <Button title="Add Guitar" onPress={() => navigation.navigate('AddEdit')} />
     </View>
   );
 };
@@ -47,38 +57,34 @@ const styles = StyleSheet.create({
   },
   itemContainer: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 20,
+  },
+  itemContent: {
+    flexDirection: 'row',
     alignItems: 'center',
   },
   image: {
     width: 50,
     height: 50,
-    resizeMode: 'contain',
     marginRight: 10,
+    resizeMode: 'contain',
   },
   text: {
     fontSize: 16,
   },
   buttonContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'absolute',
-    bottom: 20,
-    width: '100%',
-  },
-  addButton: {
-    padding: 15,
-    backgroundColor: 'blue',
-    borderRadius: 5,
-    alignItems: 'center',
-  },
-  addButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
+    flexDirection: 'row',
+    gap: 10,
   },
 });
 
 export default HomeScreen;
+
+
+
+
 
 
 

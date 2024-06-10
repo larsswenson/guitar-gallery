@@ -1,35 +1,47 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { createGuitar } from '../api';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
+import { createGuitar, fetchGuitar, updateGuitar } from '../api';
 
-const AddEditScreen = ({ navigation }) => {
+const AddEditScreen = ({ route, navigation }) => {
+  const { id } = route.params || {};
+  const queryClient = useQueryClient();
+
   const [make, setMake] = useState('');
   const [model, setModel] = useState('');
   const [year, setYear] = useState('');
   const [image, setImage] = useState('');
 
-  const queryClient = useQueryClient();
+  const { data, isSuccess } = useQuery({
+    queryKey: ['guitar', id],
+    queryFn: () => fetchGuitar(id),
+    enabled: !!id,
+  });
+
+  useEffect(() => {
+    if (isSuccess) {
+      setMake(data.make);
+      setModel(data.model);
+      setYear(data.year);
+      setImage(data.image);
+    }
+  }, [isSuccess, data]);
 
   const mutation = useMutation({
-    mutationFn: createGuitar,
+    mutationFn: id ? (updatedData) => updateGuitar(id, updatedData) : createGuitar,
     onSuccess: () => {
-      queryClient.invalidateQueries('guitars');
+      queryClient.invalidateQueries(['guitars']);
+      Alert.alert('Success', id ? 'Guitar updated' : 'Guitar added');
       navigation.goBack();
     },
     onError: (error) => {
-      console.error('Error creating guitar:', error);
+      Alert.alert('Error', `Error saving guitar: ${error.message}`);
     },
   });
 
-  const handleAddGuitar = () => {
-    console.log('Preparing to add guitar:', { make, model, year, image });
-    try {
-      mutation.mutate({ make, model, year, image });
-      console.log('Mutation called');
-    } catch (error) {
-      console.error('Mutation error:', error);
-    }
+  const handleSaveGuitar = () => {
+    const guitarData = { make, model, year, image };
+    mutation.mutate(guitarData);
   };
 
   return (
@@ -59,8 +71,8 @@ const AddEditScreen = ({ navigation }) => {
         onChangeText={setImage}
       />
       <Button
-        title="Add Guitar"
-        onPress={handleAddGuitar}
+        title={id ? "Update Guitar" : "Add Guitar"}
+        onPress={handleSaveGuitar}
       />
     </View>
   );
@@ -85,6 +97,10 @@ const styles = StyleSheet.create({
 });
 
 export default AddEditScreen;
+
+
+
+
 
 
 
